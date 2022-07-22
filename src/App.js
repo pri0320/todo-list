@@ -1,25 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
-  const [input, setInput] = useState("");
-  const [todos, setTodos] = useState([]);
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [genre, setGenre] = useState("");
+  const [price, setPrice] = useState("");
   const [isEditing, setIsEditing] = useState(0);
+  const [myBook, setMyBook] = useState(() => {
+    const savedBook = localStorage.getItem("myBook");
+    if (savedBook) {
+      return JSON.parse(savedBook);
+    } else {
+      return [];
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem("myBook", JSON.stringify(myBook));
+  }, [myBook]);
 
-  function handleChange(e) {
-    setInput(e.target.value);
+  function handleChangeTitle(e) {
+    setTitle(e.target.value);
+  }
+  function handleChangeAuthor(e) {
+    setAuthor(e.target.value);
+  }
+  function handleChangeGenre(e) {
+    setGenre(e.target.value);
+  }
+  function handleChangePrice(e) {
+    setPrice(e.target.value);
   }
 
   function handleDelete(id) {
-    const delTodo = todos.filter((element) => element.id !== id);
+    const delBook = myBook.filter((element) => element.id !== id);
 
-    setTodos([...delTodo]);
-    // console.log(typeof delTodo);
+    setMyBook([...delBook]);
   }
 
   function handleEdit(id) {
-    const editedTodo = todos.find((element) => element.id === id);
-    setInput(editedTodo.input);
+    const editedBook = myBook.find((element) => element.id === id);
+    setTitle(editedBook.title);
+    setAuthor(editedBook.author);
+    setGenre(editedBook.genre);
+    setPrice(editedBook.price);
     setIsEditing(id);
   }
 
@@ -27,41 +51,62 @@ function App() {
     e.preventDefault();
     console.log(isEditing);
     if (isEditing) {
-      const editedTodo = todos.find((ele) => ele.id === isEditing);
-      // console.log(editedTodo);
-      const updatedTodo = todos.map((ele) =>
-        ele.id === editedTodo.id
-          ? (ele = { id: ele.id, input })
-          : { id: ele.id, input: ele.input }
+      const editedBook = myBook.find((ele) => ele.id === isEditing);
+      const updatedBook = myBook.map((ele) =>
+        ele.id === editedBook.id
+          ? (ele = { id: ele.id, title, author, genre, price })
+          : {
+              id: ele.id,
+              title: ele.title,
+              author: ele.author,
+              genre: ele.genre,
+              price: ele.price,
+            }
       );
-      console.log(updatedTodo);
-      setTodos(updatedTodo);
-      setInput("");
+      console.log(updatedBook);
+      setMyBook(updatedBook);
+      setTitle("");
+      setAuthor("");
+      setGenre("");
+      setPrice("");
       setIsEditing(0);
       return;
     }
 
-    if (input !== "") {
-      setTodos((prevState) => [
-        { id: `${input}-${Date.now()}`, input },
+    if (title !== "" && author !== "" && genre !== "" && price !== "") {
+      setMyBook((prevState) => [
+        { id: `${title}-${Date.now()}`, title, author, genre, price },
         ...prevState,
       ]);
-      setInput("");
+      setTitle("");
+      setAuthor("");
+      setGenre("");
+      setPrice("");
     }
   }
   return (
     <div className="App">
       <div className="container">
-        <h1>ToDo List</h1>
-        <form className="todoform" onSubmit={handleSubmit}>
-          <input type="text" value={input} onChange={handleChange} />
+        <h1> MyBook List</h1>
+        <form className="bookform" onSubmit={handleSubmit}>
+          <b>Title:</b>
+          <input className="inputItem" type="text" value={title} onChange={handleChangeTitle} />
+          <b>Author:</b>
+          <input className="inputItem" type="text" value={author} onChange={handleChangeAuthor} />
+          <b>Genre:</b>
+          <input className="inputItem" type="text" value={genre} onChange={handleChangeGenre} />
+          <b>Price:</b>
+          <input className="inputItem" type="number" value={price} onChange={handleChangePrice} />
           <button type="submit">{isEditing ? "Edit" : "Add"}</button>
         </form>
-        <ul className="allTodo">
-          {todos.map((list) => (
-            <li className="singleTodo">
+        <ul className="allBook">
+          {myBook.map((list) => (
+            <li className="singleBook">
               <span className="text" id={list.id} key={list.id}>
-                {list.input}
+                <div>Title : {list.title}</div>
+                <div>Author : {list.author}</div>
+                <div>Genre : {list.genre}</div>
+                <div>Price : {list.price}</div>
               </span>
               <button onClick={() => handleEdit(list.id)}>Edit</button>
               <button onClick={() => handleDelete(list.id)}>Delete</button>
